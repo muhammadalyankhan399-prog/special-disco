@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow Pro - Advanced Study Scheduler</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --physics: #FF6B8B;
+            --biology: #4CD964;
+            --chemistry: #5AC8FA;
+            --english: #FF9500;
+            --math: #AF52DE;
+            --break: #8E8E93;
+            --background: #F8F9FA;
+            --card-bg: #FFFFFF;
+            --text: #333333;
+            --shadow: rgba(0, 0, 0, 0.1);
+            --modal-overlay: rgba(0, 0, 0, 0.5);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 25px 0;
+            background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px var(--shadow);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .sidebar {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px var(--shadow);
+            animation: fadeIn 1s ease-out 0.3s forwards;
+            opacity: 0;
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .view-toggle {
+            display: flex;
+            margin-bottom: 25px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .view-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .view-btn.active {
+            background-color: white;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .month-calendar {
+            margin-bottom: 30px;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .calendar-header h3 {
+            font-size: 1.4rem;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 10px;
+        }
+
+        .calendar-nav button {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #555;
+            padding: 5px;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .calendar-nav button:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #666;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            padding: 5px;
+        }
+
+        .calendar-day:hover {
+            background-color: #f0f0f0;
+        }
+
+        .calendar-day.active {
+            background-color: #5AC8FA;
+            color: white;
+        }
+
+        .calendar-day.has-schedule::after {
+            content: '';
+            position: absolute;
+            bottom: 5px;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: #4CD964;
+        }
+
+        .day-number {
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .subject-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-top: 4px solid;
+        }
+
+        .stat-box.physics { border-color: var(--physics); }
+        .stat-box.biology { border-color: var(--biology); }
+        .stat-box.chemistry { border-color: var(--chemistry); }
+        .stat-box.english { border-color: var(--english); }
+        .stat-box.math { border-color: var(--math); }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 5px 0;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .reminder-section {
+            margin-top: 20px;
+        }
+
+        .reminder-item {
+            background-color: #f8f9fa;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reminder-time {
+            font-weight: 600;
+            color: #555;
+        }
+
+        .reminder-subject {
+            font-size: 0.9rem;
+            color: #777;
+        }
+
+        .reminder-btn {
+            background-color: #5AC8FA;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .schedule-container {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px var(--shadow);
+            animation: fadeIn 1s ease-out;
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 15px;
+        }
+
+        .schedule-header h2 {
+            font-size: 1.8rem;
+            color: #444;
+        }
+
+        .date-display {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        .schedule-items {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .schedule-item {
+            display: flex;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--shadow);
+            transform: translateY(0);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: slideIn 0.5s ease-out forwards;
+            opacity: 0;
+            position: relative;
+        }
+
+        .schedule-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px var(--shadow);
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .subject-color {
+            width: 8px;
+        }
+
+        .physics { background-color: var(--physics); }
+        .biology { background-color: var(--biology); }
+        .chemistry { background-color: var(--chemistry); }
+        .english { background-color: var(--english); }
+        .math { background-color: var(--math); }
+        .break { background-color: var(--break); }
+
+        .subject-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .subject-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .subject-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .subject-icon {
+            font-size: 1.3rem;
+        }
+
+        .subject-time {
+            background-color: #f0f0f0;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .topic-details {
+            margin: 10px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+
+        .topic-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        .motivation {
+            font-style: italic;
+            margin-top: 10px;
+            padding: 10px;
+            background: linear-gradient(to right, #fefcea, #f1da36);
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .motivation i {
+            margin-right: 8px;
+            color: #ff6b6b;
+        }
+
+        .item-actions {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .schedule-item:hover .item-actions {
+            opacity: 1;
+        }
+
+        .action-btn {
+            background-color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+            transition: transform 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .action-btn.edit {
+            color: #5AC8FA;
+        }
+
+        .action-btn.delete {
+            color: #FF3B30;
+        }
+
+        .action-btn.reminder {
+            color: #4CD964;
+        }
+
+        .week-duplicate-section {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 25px var(--shadow);
+        }
+
+        .week-duplicate-section h3 {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .week-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .week-option {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .week-option:hover {
+            background-color: #e9ecef;
+            transform: translateY(-3px);
+        }
+
+        .week-option.active {
+            background-color: #5AC8FA;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px dashed #eee;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #5AC8FA;
+            color: white;
+        }
+
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-success {
+            background-color: #4CD964;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: var(--modal-overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background-color: white;
+            border-radius: 15px;
+            padding: 30px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .modal-header h3 {
+            font-size: 1.8rem;
+            color: #444;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #777;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #5AC8FA;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .subject-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .subject-option {
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .subject-option:hover {
+            transform: translateY(-3px);
+        }
+
+        .subject-option.active {
+            border-color: #5AC8FA;
+            background-color: rgba(90, 200, 250, 0.1);
+        }
+
+        .notification {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: #4CD964;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transform: translateX(150%);
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .notification.active {
+            transform: translateX(0);
+        }
+
+        .notification-icon {
+            font-size: 1.5rem;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #777;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1100px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .subject-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <i class="fas fa-graduation-cap"></i>
+        </div>
+        <h1>StudyFlow Pro</h1>
+        <p>Advanced study scheduler with editing, reminders, and monthly planning</p>
+    </header>
+
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="view-toggle">
+                <button class="view-btn active" id="day-view-btn">Day View</button>
+                <button class="view-btn" id="month-view-btn">Month View</button>
+            </div>
+
+            <div class="month-calendar" id="month-calendar">
+                <div class="calendar-header">
+                    <h3 id="current-month">February 2023</h3>
+                    <div class="calendar-nav">
+                        <button id="prev-month"><i class="fas fa-chevron-left"></i></button>
+                        <button id="next-month"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                
+                <div class="calendar-weekdays">
+                    <div>Sun</div>
+                    <div>Mon</div>
+                    <div>Tue</div>
+                    <div>Wed</div>
+                    <div>Thu</div>
+                    <div>Fri</div>
+                    <div>Sat</div>
+                </div>
+                
+                <div class="calendar-days" id="calendar-days">
+                    <!-- Calendar days will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <div class="subject-stats">
+                <div class="stat-box physics">
+                    <div class="stat-value" id="physics-time">2h</div>
+                    <div class="stat-label">Physics</div>
+                </div>
+                <div class="stat-box biology">
+                    <div class="stat-value" id="biology-time">1.5h</div>
+                    <div class="stat-label">Biology</div>
+                </div>
+                <div class="stat-box chemistry">
+                    <div class="stat-value" id="chemistry-time">1h</div>
+                    <div class="stat-label">Chemistry</div>
+                </div>
+                <div class="stat-box english">
+                    <div class="stat-value" id="english-time">1h</div>
+                    <div class="stat-label">English</div>
+                </div>
+            </div>
+
+            <div class="total-time" style="text-align: center; margin-bottom: 20px; font-size: 1.2rem; font-weight: 600;">
+                Total Study Time: <span id="total-time">5.5h</span>
+            </div>
+
+            <div class="reminder-section">
+                <h3 style="margin-bottom: 15px; font-size: 1.3rem;">Upcoming Reminders</h3>
+                <div id="reminder-list">
+                    <div class="reminder-item">
+                        <div>
+                            <div class="reminder-time">Physics at 9:00 AM</div>
+                            <div class="reminder-subject">Newton's Laws of Motion</div>
+                        </div>
+                        <button class="reminder-btn">Snooze</button>
+                    </div>
+                    <div class="reminder-item">
+                        <div>
+                            <div class="reminder-time">Biology at 10:45 AM</div>
+                            <div class="reminder-subject">Cell Structure and Function</div>
+                        </div>
+                        <button class="reminder-btn">Snooze</button>
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn btn-success" id="add-schedule-btn" style="margin-top: 20px;">
+                <i class="fas fa-plus"></i> Add New Schedule Item
+            </button>
+        </aside>
+
+        <main class="main-content">
+            <div class="schedule-container" id="schedule-container">
+                <div class="schedule-header">
+                    <h2 id="schedule-title">Today's Study Schedule</h2>
+                    <div class="date-display" id="current-date"></div>
+                </div>
+
+                <div class="schedule-items" id="schedule-items">
+                    <!-- Schedule items will be dynamically inserted here -->
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-secondary" id="reset-day-btn">
+                        <i class="fas fa-redo"></i> Reset Today's Schedule
+                    </button>
+                    <button class="btn btn-primary" id="duplicate-week-btn">
+                        <i class="fas fa-copy"></i> Duplicate Week to Month
+                    </button>
+                </div>
+            </div>
+
+            <div class="week-duplicate-section" id="week-duplicate-section" style="display: none;">
+                <h3>Duplicate Week Schedule to Entire Month</h3>
+                <p style="margin-bottom: 20px; color: #666;">Select which weeks of the month you want to duplicate this schedule to:</p>
+                
+                <div class="week-options" id="week-options">
+                    <!-- Week options will be dynamically inserted here -->
+                </div>
+                
+                <div class="controls">
+                    <button class="btn btn-secondary" id="cancel-duplicate-btn">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button class="btn btn-success" id="apply-duplicate-btn">
+                        <i class="fas fa-check"></i> Apply to Selected Weeks
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit/Add Modal -->
+    <div class="modal-overlay" id="edit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-title">Edit Schedule Item</h3>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            
+            <form id="schedule-form">
+                <div class="form-group">
+                    <label for="subject-name">Subject</label>
+                    <div class="subject-options">
+                        <div class="subject-option physics" data-subject="Physics">
+                            <i class="fas fa-atom"></i> Physics
+                        </div>
+                        <div class="subject-option biology" data-subject="Biology">
+                            <i class="fas fa-dna"></i> Biology
+                        </div>
+                        <div class="subject-option chemistry" data-subject="Chemistry">
+                            <i class="fas fa-flask"></i> Chemistry
+                        </div>
+                        <div class="subject-option english" data-subject="English">
+                            <i class="fas fa-book"></i> English
+                        </div>
+                        <div class="subject-option math" data-subject="Math">
+                            <i class="fas fa-calculator"></i> Math
+                        </div>
+                        <div class="subject-option break" data-subject="Break">
+                            <i class="fas fa-coffee"></i> Break
+                        </div>
+                    </div>
+                    <input type="hidden" id="subject-name" name="subject" required>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="start-time">Start Time</label>
+                        <input type="time" id="start-time" name="startTime" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="end-time">End Time</label>
+                        <input type="time" id="end-time" name="endTime" class="form-control" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic-title">Topic Title</label>
+                    <input type="text" id="topic-title" name="topicTitle" class="form-control" placeholder="e.g., Newton's Laws of Motion" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="topic-details">Topic Details</label>
+                    <textarea id="topic-details" name="topicDetails" class="form-control" rows="3" placeholder="Detailed description of what to study..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="motivation">Motivation Message</label>
+                    <textarea id="motivation" name="motivation" class="form-control" rows="2" placeholder="Motivational message for this study session..."></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label for="reminder-time">
+                        <input type="checkbox" id="enable-reminder"> Set Reminder (10 minutes before)
+                    </label>
+                </div>
+                
+                <div class="controls">
+                    <button type="button" class="btn btn-secondary" id="cancel-form">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Schedule Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <div class="notification-icon">
+            <i class="fas fa-bell"></i>
+        </div>
+        <div>
+            <div class="notification-title" id="notification-title">Reminder: Physics starts in 10 minutes</div>
+            <div class="notification-message" id="notification-message">Newton's Laws of Motion</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>StudyFlow Pro - Advanced study scheduling with editing, reminders, and monthly planning</p>
+        <p style="margin-top: 10px;">© 2023 StudyFlow Pro. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Main application state
+        const AppState = {
+            currentDate: new Date(),
+            selectedDate: new Date(),
+            currentView: 'day',
+            scheduleData: {},
+            editingItem: null,
+            editingDate: null,
+            reminders: [],
+            selectedWeeks: []
+        };
+
+        // Initialize with sample data
+        function initializeData() {
+            const today = formatDate(new Date());
+            
+            // Check if we have saved data in localStorage
+            const savedData = localStorage.getItem('studyflow-schedule');
+            if (savedData) {
+                AppState.scheduleData = JSON.parse(savedData);
+            } else {
+                // Create sample data for the current week
+                AppState.scheduleData = {
+                    [today]: [
+                        {
+                            id: generateId(),
+                            subject: "Physics",
+                            startTime: "09:00",
+                            endTime: "10:30",
+                            topicTitle: "Newton's Laws of Motion",
+                            topicDetails: "Focus on the three laws, practice problems on inertia, force, and action-reaction pairs.",
+                            motivation: "Understanding motion is the first step to mastering the universe!",
+                            hasReminder: true,
+                            completed: false
+                        },
+                        {
+                            id: generateId(),
+                            subject: "Break",
+                            startTime: "10:30",
+                            endTime: "10:45",
+                            topicTitle: "Short Break",
+                            topicDetails: "Rest your mind, stretch, and hydrate.",
+                            motivation: "A short break boosts productivity and retention!",
+                            hasReminder: false,
+                            completed: false
+                        },
+                        {
+                            id: generateId(),
+                            subject: "Biology",
+                            startTime: "10:45",
+                            endTime: "12:15",
+                            topicTitle: "Cell Structure and Function",
+                            topicDetails: "Study organelles, their functions, and differences between plant and animal cells.",
+                            motivation: "Every cell in your body is working hard to help you learn!",
+                            hasReminder: true,
+                            completed: true
+                        },
+                        {
+                            id: generateId(),
+                            subject: "Chemistry",
+                            startTime: "13:30",
+                            endTime: "14:30",
+                            topicTitle: "Chemical Bonding",
+                            topicDetails: "Covalent, ionic, and metallic bonds with examples and practice equations.",
+                            motivation: "Atoms bond to form molecules, just like ideas bond to form knowledge!",
+                            hasReminder: false,
+                            completed: false
+                        },
+                        {
+                            id: generateId(),
+                            subject: "English",
+                            startTime: "15:00",
+                            endTime: "16:00",
+                            topicTitle: "Essay Writing Techniques",
+                            topicDetails: "Structure of persuasive essays, thesis statements, and supporting arguments.",
+                            motivation: "Words have power - use them wisely to express your ideas!",
+                            hasReminder: false,
+                            completed: false
+                        }
+                    ]
+                };
+                
+                // Save to localStorage
+                saveToLocalStorage();
+            }
+            
+            // Load reminders
+            loadReminders();
+        }
+
+        // Utility functions
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatTimeForDisplay(timeStr) {
+            const [hours, minutes] = timeStr.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour % 12 || 12;
+            return `${displayHour}:${minutes} ${ampm}`;
+        }
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('studyflow-schedule', JSON.stringify(AppState.scheduleData));
+        }
+
+        function getSubjectColor(subject) {
+            switch(subject.toLowerCase()) {
+                case 'physics': return 'physics';
+                case 'biology': return 'biology';
+                case 'chemistry': return 'chemistry';
+                case 'english': return 'english';
+                case 'math': return 'math';
+                case 'break': return 'break';
+                default: return 'physics';
+            }
+        }
+
+        function getSubjectIcon(subject) {
+            switch(subject.toLowerCase()) {
+                case 'physics': return 'fas fa-atom';
+                case 'biology': return 'fas fa-dna';
+                case 'chemistry': return 'fas fa-flask';
+                case 'english': return 'fas fa-book';
+                case 'math': return 'fas fa-calculator';
+                case 'break': return 'fas fa-coffee';
+                default: return 'fas fa-book';
+            }
+        }
+
+        // DOM Elements
+        const elements = {
+            scheduleItems: document.getElementById('schedule-items'),
+            scheduleTitle: document.getElementById('schedule-title'),
+            currentDate: document.getElementById('current-date'),
+            dayViewBtn: document.getElementById('day-view-btn'),
+            monthViewBtn: document.getElementById('month-view-btn'),
+            monthCalendar: document.getElementById('month-calendar'),
+            calendarDays: document.getElementById('calendar-days'),
+            currentMonth: document.getElementById('current-month'),
+            prevMonthBtn: document.getElementById('prev-month'),
+            nextMonthBtn: document.getElementById('next-month'),
+            scheduleContainer: document.getElementById('schedule-container'),
+            weekDuplicateSection: document.getElementById('week-duplicate-section'),
+            addScheduleBtn: document.getElementById('add-schedule-btn'),
+            editModal: document.getElementById('edit-modal'),
+            closeModal: document.getElementById('close-modal'),
+            cancelForm: document.getElementById('cancel-form'),
+            scheduleForm: document.getElementById('schedule-form'),
+            modalTitle: document.getElementById('modal-title'),
+            subjectOptions: document.querySelectorAll('.subject-option'),
+            subjectNameInput: document.getElementById('subject-name'),
+            startTimeInput: document.getElementById('start-time'),
+            endTimeInput: document.getElementById('end-time'),
+            topicTitleInput: document.getElementById('topic-title'),
+            topicDetailsInput: document.getElementById('topic-details'),
+            motivationInput: document.getElementById('motivation'),
+            enableReminderCheckbox: document.getElementById('enable-reminder'),
+            resetDayBtn: document.getElementById('reset-day-btn'),
+            duplicateWeekBtn: document.getElementById('duplicate-week-btn'),
+            weekOptionsContainer: document.getElementById('week-options'),
+            cancelDuplicateBtn: document.getElementById('cancel-duplicate-btn'),
+            applyDuplicateBtn: document.getElementById('apply-duplicate-btn'),
+            notification: document.getElementById('notification'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message')
+        };
+
+        // Render schedule for a specific date
+        function renderSchedule(date) {
+            const dateStr = formatDate(date);
+            const schedule = AppState.scheduleData[dateStr] || [];
+            
+            // Clear current schedule items
+            elements.scheduleItems.innerHTML = '';
+            
+            // Update title and date display
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            elements.scheduleTitle.textContent = `${date.toLocaleDateString('en-US', { weekday: 'long' })}'s Study Schedule`;
+            elements.currentDate.textContent = date.toLocaleDateString('en-US', options);
+            
+            // Sort schedule by start time
+            schedule.sort((a, b) => a.startTime.localeCompare(b.startTime));
+            
+            // Render each schedule item
+            schedule.forEach((item, index) => {
+                const scheduleItem = document.createElement('div');
+                scheduleItem.className = `schedule-item ${item.completed ? 'completed' : ''}`;
+                scheduleItem.style.animationDelay = `${index * 0.1}s`;
+                scheduleItem.dataset.id = item.id;
+                
+                const subjectColor = getSubjectColor(item.subject);
+                const subjectIcon = getSubjectIcon(item.subject);
+                const timeDisplay = `${formatTimeForDisplay(item.startTime)} - ${formatTimeForDisplay(item.endTime)}`;
+                
+                scheduleItem.innerHTML = `
+                    <div class="subject-color ${subjectColor}"></div>
+                    <div class="subject-content">
+                        <div class="subject-header">
+                            <div class="subject-name">
+                                <i class="subject-icon ${subjectIcon}"></i>
+                                ${item.subject}
+                            </div>
+                            <div class="subject-time">${timeDisplay}</div>
+                        </div>
+                        <div class="topic-details">
+                            <div class="topic-title">${item.topicTitle}</div>
+                            <div>${item.topicDetails}</div>
+                        </div>
+                        <div class="motivation">
+                            <i class="fas fa-lightbulb"></i> ${item.motivation}
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn edit" data-id="${item.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="action-btn reminder" data-id="${item.id}">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                        <button class="action-btn delete" data-id="${item.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `;
+                
+                // Add click event to mark as completed
+                scheduleItem.addEventListener('click', function(e) {
+                    if (!e.target.closest('.action-btn')) {
+                        item.completed = !item.completed;
+                        scheduleItem.classList.toggle('completed');
+                        saveToLocalStorage();
+                        updateStats();
+                    }
+                });
+                
+                elements.scheduleItems.appendChild(scheduleItem);
+            });
+            
+            // Add event listeners to action buttons
+            document.querySelectorAll('.action-btn.edit').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const itemId = this.dataset.id;
+                    openEditModal(dateStr, itemId);
+                });
+            });
+            
+            document.querySelectorAll('.action-btn.delete').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const itemId = this.dataset.id;
+                    deleteScheduleItem(dateStr, itemId);
+                });
+            });
+            
+            document.querySelectorAll('.action-btn.reminder').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const itemId = this.dataset.id;
+                    toggleReminder(dateStr, itemId);
+                });
+            });
+            
+            // Update statistics
+            updateStats();
+        }
+
+        // Update statistics display
+        function updateStats() {
+            const dateStr = formatDate(AppState.selectedDate);
+            const schedule = AppState.scheduleData[dateStr] || [];
+            
+            let physicsTime = 0;
+            let biologyTime = 0;
+            let chemistryTime = 0;
+            let englishTime = 0;
+            let totalTime = 0;
+            
+            schedule.forEach(item => {
+                if (item.subject !== 'Break') {
+                    const start = parseTime(item.startTime);
+                    const end = parseTime(item.endTime);
+                    const duration = (end - start) / (1000 * 60 * 60); // Convert to hours
+                    
+                    switch(item.subject) {
+                        case 'Physics': physicsTime += duration; break;
+                        case 'Biology': biologyTime += duration; break;
+                        case 'Chemistry': chemistryTime += duration; break;
+                        case 'English': englishTime += duration; break;
+                    }
+                    
+                    totalTime += duration;
+                }
+            });
+            
+            // Update DOM elements
+            document.getElementById('physics-time').textContent = `${physicsTime.toFixed(1)}h`;
+            document.getElementById('biology-time').textContent = `${biologyTime.toFixed(1)}h`;
+            document.getElementById('chemistry-time').textContent = `${chemistryTime.toFixed(1)}h`;
+            document.getElementById('english-time').textContent = `${englishTime.toFixed(1)}h`;
+            document.getElementById('total-time').textContent = `${totalTime.toFixed(1)}h`;
+        }
+
+        function parseTime(timeStr) {
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours, minutes, 0, 0);
+            return date;
+        }
+
+        // Render monthly calendar
+        function renderCalendar(date) {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            
+            // Update current month display
+            const monthNames = ["January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"];
+            elements.currentMonth.textContent = `${monthNames[month]} ${year}`;
+            
+            // Get first day of month and total days
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const totalDays = lastDay.getDate();
+            const firstDayIndex = firstDay.getDay();
+            
+            // Clear calendar days
+            elements.calendarDays.innerHTML = '';
+            
+            // Add empty cells for days before the first day of month
+            for (let i = 0; i < firstDayIndex; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'calendar-day';
+                elements.calendarDays.appendChild(emptyCell);
+            }
+            
+            // Add cells for each day of the month
+            for (let day = 1; day <= totalDays; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'calendar-day';
+                dayCell.innerHTML = `<div class="day-number">${day}</div>`;
+                
+                // Check if this day has schedule
+                const currentDate = new Date(year, month, day);
+                const dateStr = formatDate(currentDate);
+                
+                if (AppState.scheduleData[dateStr] && AppState.scheduleData[dateStr].length > 0) {
+                    dayCell.classList.add('has-schedule');
+                }
+                
+                // Highlight selected date
+                if (formatDate(currentDate) === formatDate(AppState.selectedDate)) {
+                    dayCell.classList.add('active');
+                }
+                
+                // Highlight today
+                if (formatDate(currentDate) === formatDate(new Date())) {
+                    dayCell.style.backgroundColor = 'rgba(90, 200, 250, 0.2)';
+                }
+                
+                // Add click event
+                dayCell.addEventListener('click', function() {
+                    AppState.selectedDate = currentDate;
+                    renderCalendar(date);
+                    renderSchedule(currentDate);
+                    
+                    // Switch to day view if in month view
+                    if (AppState.currentView === 'month') {
+                        switchView('day');
+                    }
+                });
+                
+                elements.calendarDays.appendChild(dayCell);
+            }
+        }
+
+        // Switch between day and month view
+        function switchView(view) {
+            AppState.currentView = view;
+            
+            if (view === 'day') {
+                elements.dayViewBtn.classList.add('active');
+                elements.monthViewBtn.classList.remove('active');
+                elements.scheduleContainer.style.display = 'block';
+                elements.weekDuplicateSection.style.display = 'none';
+                renderSchedule(AppState.selectedDate);
+            } else {
+                elements.dayViewBtn.classList.remove('active');
+                elements.monthViewBtn.classList.add('active');
+                elements.scheduleContainer.style.display = 'none';
+                elements.weekDuplicateSection.style.display = 'block';
+                renderWeekDuplicateOptions();
+            }
+        }
+
+        // Open edit modal
+        function openEditModal(dateStr, itemId = null) {
+            AppState.editingDate = dateStr;
+            
+            if (itemId) {
+                // Edit existing item
+                const schedule = AppState.scheduleData[dateStr] || [];
+                const item = schedule.find(item => item.id === itemId);
+                
+                if (item) {
+                    AppState.editingItem = item;
+                    elements.modalTitle.textContent = 'Edit Schedule Item';
+                    
+                    // Fill form with item data
+                    document.querySelectorAll('.subject-option').forEach(option => {
+                        option.classList.remove('active');
+                        if (option.dataset.subject === item.subject) {
+                            option.classList.add('active');
+                        }
+                    });
+                    
+                    elements.subjectNameInput.value = item.subject;
+                    elements.startTimeInput.value = item.startTime;
+                    elements.endTimeInput.value = item.endTime;
+                    elements.topicTitleInput.value = item.topicTitle;
+                    elements.topicDetailsInput.value = item.topicDetails;
+                    elements.motivationInput.value = item.motivation;
+                    elements.enableReminderCheckbox.checked = item.hasReminder;
+                }
+            } else {
+                // Add new item
+                AppState.editingItem = null;
+                elements.modalTitle.textContent = 'Add New Schedule Item';
+                
+                // Reset form
+                elements.scheduleForm.reset();
+                document.querySelectorAll('.subject-option').forEach(option => {
+                    option.classList.remove('active');
+                });
+                
+                // Set default time (next hour)
+                const now = new Date();
+                const nextHour = new Date(now.getTime() + 60 * 60 * 1000);
+                const nextHourPlusOne = new Date(nextHour.getTime() + 60 * 60 * 1000);
+                
+                elements.startTimeInput.value = `${nextHour.getHours().toString().padStart(2, '0')}:00`;
+                elements.endTimeInput.value = `${nextHourPlusOne.getHours().toString().padStart(2, '0')}:00`;
+            }
+            
+            // Show modal
+            elements.editModal.classList.add('active');
+        }
+
+        // Close edit modal
+        function closeEditModal() {
+            elements.editModal.classList.remove('active');
+            AppState.editingItem = null;
+            AppState.editingDate = null;
+        }
+
+        // Save schedule item
+        function saveScheduleItem(formData) {
+            const dateStr = AppState.editingDate || formatDate(AppState.selectedDate);
+            
+            if (!AppState.scheduleData[dateStr]) {
+                AppState.scheduleData[dateStr] = [];
+            }
+            
+            const scheduleItem = {
+                id: AppState.editingItem ? AppState.editingItem.id : generateId(),
+                subject: formData.subject,
+                startTime: formData.startTime,
+                endTime: formData.endTime,
+                topicTitle: formData.topicTitle,
+                topicDetails: formData.topicDetails,
+                motivation: formData.motivation,
+                hasReminder: formData.enableReminder === 'on',
+                completed: AppState.editingItem ? AppState.editingItem.completed : false
+            };
+            
+            if (AppState.editingItem) {
+                // Update existing item
+                const index = AppState.scheduleData[dateStr].findIndex(item => item.id === AppState.editingItem.id);
+                if (index !== -1) {
+                    AppState.scheduleData[dateStr][index] = scheduleItem;
+                }
+            } else {
+                // Add new item
+                AppState.scheduleData[dateStr].push(scheduleItem);
+            }
+            
+            // Save to localStorage
+            saveToLocalStorage();
+            
+            // Update UI
+            renderSchedule(AppState.selectedDate);
+            
+            // Set reminder if enabled
+            if (scheduleItem.hasReminder) {
+                setReminder(dateStr, scheduleItem);
+            }
+            
+            // Show success notification
+            showNotification(
+                `Schedule item ${AppState.editingItem ? 'updated' : 'added'}`,
+                `${scheduleItem.subject} at ${formatTimeForDisplay(scheduleItem.startTime)}`
+            );
+            
+            closeEditModal();
+        }
+
+        // Delete schedule item
+        function deleteScheduleItem(dateStr, itemId) {
+            if (confirm('Are you sure you want to delete this schedule item?')) {
+                const schedule = AppState.scheduleData[dateStr] || [];
+                AppState.scheduleData[dateStr] = schedule.filter(item => item.id !== itemId);
+                
+                // Save to localStorage
+                saveToLocalStorage();
+                
+                // Update UI
+                renderSchedule(AppState.selectedDate);
+                
+                // Show notification
+                showNotification('Schedule item deleted', 'Item has been removed from your schedule');
+            }
+        }
+
+        // Toggle reminder for schedule item
+        function toggleReminder(dateStr, itemId) {
+            const schedule = AppState.scheduleData[dateStr] || [];
+            const item = schedule.find(item => item.id === itemId);
+            
+            if (item) {
+                item.hasReminder = !item.hasReminder;
+                saveToLocalStorage();
+                renderSchedule(AppState.selectedDate);
+                
+                if (item.hasReminder) {
+                    setReminder(dateStr, item);
+                    showNotification('Reminder set', `You'll be reminded 10 minutes before ${item.subject}`);
+                } else {
+                    showNotification('Reminder removed', `No reminder will be shown for ${item.subject}`);
+                }
+            }
+        }
+
+        // Set reminder for schedule item
+        function setReminder(dateStr, item) {
+            // Parse date and time
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const [hours, minutes] = item.startTime.split(':').map(Number);
+            
+            // Create reminder time (10 minutes before start)
+            const reminderTime = new Date(year, month - 1, day, hours, minutes - 10, 0);
+            const now = new Date();
+            
+            // Only set reminder if it's in the future
+            if (reminderTime > now) {
+                const timeUntilReminder = reminderTime.getTime() - now.getTime();
+                
+                // Schedule reminder
+                setTimeout(() => {
+                    showNotification(
+                        `Reminder: ${item.subject} starts in 10 minutes`,
+                        item.topicTitle,
+                        true
+                    );
+                }, timeUntilReminder);
+                
+                // Save reminder to state
+                AppState.reminders.push({
+                    id: item.id,
+                    time: reminderTime,
+                    title: item.subject,
+                    message: item.topicTitle
+                });
+                
+                // Save reminders to localStorage
+                localStorage.setItem('studyflow-reminders', JSON.stringify(AppState.reminders));
+            }
+        }
+
+        // Load reminders from localStorage
+        function loadReminders() {
+            const savedReminders = localStorage.getItem('studyflow-reminders');
+            if (savedReminders) {
+                AppState.reminders = JSON.parse(savedReminders);
+                
+                // Filter out past reminders
+                const now = new Date();
+                AppState.reminders = AppState.reminders.filter(reminder => {
+                    return new Date(reminder.time) > now;
+                });
+            }
+        }
+
+        // Show notification
+        function showNotification(title, message, isReminder = false) {
+            elements.notificationTitle.textContent = title;
+            elements.notificationMessage.textContent = message;
+            
+            // Change color for reminders
+            if (isReminder) {
+                elements.notification.style.backgroundColor = '#FF9500';
+                
+                // Play notification sound if available
+                try {
+                    const audio = new Audio('data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==');
+                    audio.play().catch(e => console.log("Audio play failed:", e));
+                } catch (e) {
+                    console.log("Audio not supported");
+                }
+            } else {
+                elements.notification.style.backgroundColor = '#4CD964';
+            }
+            
+            // Show notification
+            elements.notification.classList.add('active');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                elements.notification.classList.remove('active');
+            }, 5000);
+        }
+
+        // Reset today's schedule
+        function resetDaySchedule() {
+            const dateStr = formatDate(AppState.selectedDate);
+            
+            if (confirm('Reset all schedule items for today? Completed items will be marked as incomplete.')) {
+                const schedule = AppState.scheduleData[dateStr] || [];
+                schedule.forEach(item => {
+                    item.completed = false;
+                });
+                
+                saveToLocalStorage();
+                renderSchedule(AppState.selectedDate);
+                showNotification('Schedule reset', 'All items marked as incomplete');
+            }
+        }
+
+        // Render week duplicate options
+        function renderWeekDuplicateOptions() {
+            elements.weekOptionsContainer.innerHTML = '';
+            AppState.selectedWeeks = [];
+            
+            // Get the current week's schedule (Monday to Friday)
+            const currentWeekSchedule = getCurrentWeekSchedule();
+            
+            // Create options for each week of the month
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            
+            // Calculate weeks in month
+            let weekCount = 1;
+            let weekStart = new Date(firstDay);
+            
+            // Adjust to Monday if needed
+            while (weekStart.getDay() !== 1 && weekStart <= lastDay) {
+                weekStart.setDate(weekStart.getDate() + 1);
+            }
+            
+            while (weekStart <= lastDay) {
+                const weekEnd = new Date(weekStart);
+                weekEnd.setDate(weekEnd.getDate() + 4); // Monday to Friday
+                
+                // Skip if weekEnd is beyond month end
+                if (weekEnd > lastDay) {
+                    weekEnd.setDate(lastDay.getDate());
+                }
+                
+                const weekOption = document.createElement('div');
+                weekOption.className = 'week-option';
+                weekOption.innerHTML = `
+                    <div style="font-weight: 600;">Week ${weekCount}</div>
+                    <div style="font-size: 0.9rem; color: #666;">
+                        ${weekStart.getDate()} - ${weekEnd.getDate()} ${firstDay.toLocaleDateString('en-US', { month: 'short' })}
+                    </div>
+                `;
+                
+                weekOption.dataset.week = weekCount;
+                
+                weekOption.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const weekNum = parseInt(this.dataset.week);
+                    
+                    if (this.classList.contains('active')) {
+                        AppState.selectedWeeks.push(weekNum);
+                    } else {
+                        AppState.selectedWeeks = AppState.selectedWeeks.filter(w => w !== weekNum);
+                    }
+                });
+                
+                elements.weekOptionsContainer.appendChild(weekOption);
+                
+                // Move to next week
+                weekStart.setDate(weekStart.getDate() + 7);
+                weekCount++;
+            }
+        }
+
+        // Get current week's schedule (Monday to Friday)
+        function getCurrentWeekSchedule() {
+            const result = {};
+            const today = new Date();
+            const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+            
+            // Find Monday of this week
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+            
+            // Get schedule for each day Monday to Friday
+            for (let i = 0; i < 5; i++) {
+                const currentDay = new Date(monday);
+                currentDay.setDate(monday.getDate() + i);
+                const dateStr = formatDate(currentDay);
+                
+                if (AppState.scheduleData[dateStr]) {
+                    result[dateStr] = AppState.scheduleData[dateStr];
+                }
+            }
+            
+            return result;
+        }
+
+        // Apply week schedule to selected weeks
+        function applyWeekToMonth() {
+            if (AppState.selectedWeeks.length === 0) {
+                alert('Please select at least one week to duplicate the schedule to.');
+                return;
+            }
+            
+            const currentWeekSchedule = getCurrentWeekSchedule();
+            
+            // Get month and year
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            
+            // For each selected week, apply the schedule
+            AppState.selectedWeeks.forEach(weekNum => {
+                // Calculate start date for this week (Monday)
+                const weekStart = new Date(firstDay);
+                
+                // Find first Monday of the month
+                while (weekStart.getDay() !== 1) {
+                    weekStart.setDate(weekStart.getDate() + 1);
+                }
+                
+                // Move to the selected week
+                weekStart.setDate(weekStart.getDate() + (weekNum - 1) * 7);
+                
+                // Apply schedule for each day Monday to Friday
+                Object.keys(currentWeekSchedule).forEach((dateStr, index) => {
+                    const targetDate = new Date(weekStart);
+                    targetDate.setDate(weekStart.getDate() + index);
+                    const targetDateStr = formatDate(targetDate);
+                    
+                    // Copy schedule items with new IDs
+                    AppState.scheduleData[targetDateStr] = currentWeekSchedule[dateStr].map(item => ({
+                        ...item,
+                        id: generateId(),
+                        completed: false
+                    }));
+                });
+            });
+            
+            // Save to localStorage
+            saveToLocalStorage();
+            
+            // Show success message
+            showNotification(
+                'Schedule duplicated',
+                `Applied to ${AppState.selectedWeeks.length} week(s)`
+            );
+            
+            // Switch back to day view
+            switchView('day');
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // View toggle buttons
+            elements.dayViewBtn.addEventListener('click', () => switchView('day'));
+            elements.monthViewBtn.addEventListener('click', () => switchView('month'));
+            
+            // Calendar navigation
+            elements.prevMonthBtn.addEventListener('click', () => {
+                AppState.currentDate.setMonth(AppState.currentDate.getMonth() - 1);
+                renderCalendar(AppState.currentDate);
+            });
+            
+            elements.nextMonthBtn.addEventListener('click', () => {
+                AppState.currentDate.setMonth(AppState.currentDate.getMonth() + 1);
+                renderCalendar(AppState.currentDate);
+            });
+            
+            // Add schedule button
+            elements.addScheduleBtn.addEventListener('click', () => {
+                openEditModal(formatDate(AppState.selectedDate));
+            });
+            
+            // Modal close buttons
+            elements.closeModal.addEventListener('click', closeEditModal);
+            elements.cancelForm.addEventListener('click', closeEditModal);
+            
+            // Subject option selection
+            elements.subjectOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    elements.subjectOptions.forEach(opt => opt.classList.remove('active'));
+                    this.classList.add('active');
+                    elements.subjectNameInput.value = this.dataset.subject;
+                });
+            });
+            
+            // Form submission
+            elements.scheduleForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const data = Object.fromEntries(formData.entries());
+                
+                saveScheduleItem(data);
+            });
+            
+            // Reset day button
+            elements.resetDayBtn.addEventListener('click', resetDaySchedule);
+            
+            // Duplicate week button
+            elements.duplicateWeekBtn.addEventListener('click', () => switchView('month'));
+            
+            // Duplicate week actions
+            elements.cancelDuplicateBtn.addEventListener('click', () => switchView('day'));
+            elements.applyDuplicateBtn.addEventListener('click', applyWeekToMonth);
+            
+            // Notification click to dismiss
+            elements.notification.addEventListener('click', function() {
+                this.classList.remove('active');
+            });
+            
+            // Click outside modal to close
+            elements.editModal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeEditModal();
+                }
+            });
+        }
+
+        // Initialize the app
+        function init() {
+            initializeData();
+            setupEventListeners();
+            
+            // Set current date display
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            elements.currentDate.textContent = new Date().toLocaleDateString('en-US', options);
+            
+            // Initial render
+            renderCalendar(AppState.currentDate);
+            renderSchedule(AppState.selectedDate);
+            
+            // Check for any upcoming reminders
+            setTimeout(() => {
+                const now = new Date();
+                AppState.reminders.forEach(reminder => {
+                    const reminderTime = new Date(reminder.time);
+                    if (reminderTime > now && reminderTime - now < 60000) {
+                        // Reminder is within the next minute
+                        showNotification(
+                            `Reminder: ${reminder.title} starts soon`,
+                            reminder.message,
+                            true
+                        );
+                    }
+                });
+            }, 1000);
+        }
+
+        // Start the application
+        init();
+    </script>
+</body>
+</html>
